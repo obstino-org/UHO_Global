@@ -1,0 +1,264 @@
+package com.obstino.uho_captions;
+
+import static android.content.Context.MODE_PRIVATE;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Data;
+import androidx.work.ForegroundInfo;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.android.play.core.assetpacks.AssetPackManager;
+import com.google.android.play.core.assetpacks.AssetPackManagerFactory;
+import com.google.android.play.core.assetpacks.AssetPackState;
+import com.google.android.play.core.assetpacks.AssetPackStateUpdateListener;
+import com.google.android.play.core.assetpacks.AssetPackStates;
+import com.google.android.play.core.assetpacks.model.AssetPackStatus;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.obstino.uho_captions.MainActivity;
+
+import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class Downloader extends Worker {
+    private static final String TAG = Downloader.class.getSimpleName();
+    public static final String PROGRESS = "PROGRESS";
+
+    String assetPackName;
+    AtomicBoolean finished = new AtomicBoolean(false);
+    boolean result = false;
+
+    public Downloader(
+            @NonNull Context appContext,
+            @NonNull WorkerParameters workerParams) {
+        super(appContext, workerParams);
+        this.assetPackName = getInputData().getString("packname");
+        Log.i("UHO_Captions", "this.assetPackName = " + this.assetPackName);
+    }
+
+    AssetPackState getPackState(String packName) {
+        Log.i("UHO_Captions", "getPackState for packName = " + packName);
+        Context applicationContext = getApplicationContext();
+        AssetPackManager assetPackManager = AssetPackManagerFactory.getInstance(applicationContext);
+
+        Task<AssetPackStates> taskPackStates = assetPackManager.getPackStates(Collections.singletonList(packName));
+        AssetPackStates packStates;
+        try {
+            packStates = Tasks.await(taskPackStates);
+        } catch (ExecutionException e) {
+            return null;
+            //throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            return null;
+            //throw new RuntimeException(e);
+        }
+
+        AssetPackState packState = packStates.packStates().get(packName);
+        if (packState == null)
+            return null;
+
+        return packState;
+    }
+
+    void sendMainActivityBroadcastMessage(int m) {
+        Intent intent = new Intent(MainActivity.BROADCAST_EVENT_NAME);
+        intent.putExtra("msg", m);
+        //intent.setPackage(getPackageName());
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+    }
+
+    AssetPackStateUpdateListener stateUpdateListener = new AssetPackStateUpdateListener() {
+        @Override
+        public void onStateUpdate(@NonNull AssetPackState assetPackState) {
+            Context applicationContext = getApplicationContext();
+            AssetPackManager assetPackManager = AssetPackManagerFactory.getInstance(applicationContext);
+
+            int status = assetPackState.status();
+
+            if(status == AssetPackStatus.REQUIRES_USER_CONFIRMATION ||
+                    status == AssetPackStatus.WAITING_FOR_WIFI) {
+                Log.i("UHO_Captions", "[onStateUpdate] status = " + ((status == AssetPackStatus.WAITING_FOR_WIFI)?"waiting for wifi":"requires user confirmation"));
+                SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+                SharedPreferences.Editor ed = prefs.edit();
+                ed.putBoolean("assetConfirmationRequired", true);
+                ed.apply();
+                sendMainActivityBroadcastMessage(MainActivity.MSG_CELLULAR_DIALOG);
+            } else if(status == AssetPackStatus.COMPLETED) {
+                assetPackManager.unregisterListener(this);
+                result = true;
+                finished.set(true);
+            } else if (status == AssetPackStatus.CANCELED || status == AssetPackStatus.FAILED) {
+                assetPackManager.unregisterListener(this);
+                result = false;
+                finished.set(true);
+            } else {
+                Log.i("UHO_Captions", "[onStateUpdate] status = " + status);
+            }
+        }
+    };
+
+    private ForegroundInfo createForegroundInfo() {
+        int NOTIFICATION_ID = 101;
+        String CHANNEL_ID = "UHO_CAPTIONS_CHANNEL";
+        Context context = getApplicationContext();
+
+        // Create Notification Channel (Required for Android 8.0+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID, "Download", NotificationManager.IMPORTANCE_LOW);
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager != null) manager.createNotificationChannel(channel);
+        }
+
+        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setContentTitle("Downloading File")
+                .setSmallIcon(R.drawable.ic_android) // Use your own icon here
+                .setOngoing(true)
+                .build();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return new ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            return new ForegroundInfo(NOTIFICATION_ID, notification);
+        }
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<ForegroundInfo> getForegroundInfoAsync() {
+        return Futures.immediateFuture(createForegroundInfo());
+    }
+
+    void cleanup(boolean cancelAsset) {
+        Context applicationContext = getApplicationContext();
+        AssetPackManager assetPackManager = AssetPackManagerFactory.getInstance(applicationContext);
+        assetPackManager.unregisterListener(stateUpdateListener);
+        if(cancelAsset) {
+            assetPackManager.cancel(Collections.singletonList(assetPackName));
+        }
+
+        /*SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor ed = prefs.edit();
+        ed.putBoolean("isDownloading", false);
+        ed.apply();*/
+    }
+
+    @NonNull
+    @Override
+    public Result doWork() {
+        // reset the flag that is normally used to signalize to MainActivity when large download requires confirmation
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor ed = prefs.edit();
+        //ed.putBoolean("isDownloading", true);
+        ed.putBoolean("assetConfirmationRequired", false);
+        ed.apply();
+
+        // if its already installed, return success
+        {
+            AssetPackState packState = getPackState(assetPackName);
+            if(packState == null) {
+                Log.i("UHO_Captions", "getPackState = null (1)");
+                return Result.failure();
+            }
+
+            if (packState.status() == AssetPackStatus.COMPLETED)
+                return Result.success();
+        }
+
+        // set initial progress to 0%
+        setProgressAsync(new Data.Builder().putInt(PROGRESS, 0).build());
+
+        /*
+        // mock download indicator (TODO: remove later)
+        for (int percentDone = 0; percentDone < 100; percentDone++) {
+            setProgressAsync(new Data.Builder().putInt(PROGRESS, percentDone).build());
+            try {
+                Thread.sleep(5000);
+            } catch (Exception e) {
+                cleanup(false);
+                return Result.failure();
+                //throw new RuntimeException(e);
+            }
+
+            if(isStopped()) {
+                cleanup(false);
+                return Result.failure();
+            }
+        }
+        */
+
+        // fetch asset pack
+        Context applicationContext = getApplicationContext();
+        AssetPackManager assetPackManager = AssetPackManagerFactory.getInstance(applicationContext);
+        assetPackManager.registerListener(stateUpdateListener);
+        assetPackManager.fetch(Collections.singletonList(assetPackName));
+
+        try {
+            while(!finished.get() && !isStopped()) {
+                // periodically update progress
+                AssetPackState packState = getPackState(assetPackName);
+                if (packState == null) {
+                    Log.i("UHO_Captions", "getPackState = null (2)");
+                    cleanup(true);
+                    return Result.failure();
+                }
+
+                if (packState.status() == AssetPackStatus.DOWNLOADING) {
+                    Log.i("UHO_Captions", "downloading");
+                    long bytesDownloaded = packState.bytesDownloaded();
+                    long totalBytesToDownload = packState.totalBytesToDownload();
+                    int percentDone = (int) ((double) bytesDownloaded / (double) totalBytesToDownload * 100.0);
+                    setProgressAsync(new Data.Builder().putInt(PROGRESS, percentDone).build());
+                } else {
+                    Log.i("UHO_Captions", "[doWork] status = " + packState.status());
+                }
+
+                Thread.sleep(500);
+            }
+        } catch (Exception e) {
+            Log.i("UHO_Captions", "[doWork] thread sleep exception: " + e.toString());
+            cleanup(true);
+            return Result.failure();
+        }
+
+        if(result) {
+            Log.i("UHO_Captions", "result = true");
+            setProgressAsync(new Data.Builder().putInt(PROGRESS, 100).build());
+
+            ed.putBoolean("DownloadJustFinished", true);
+            ed.apply();
+
+            cleanup(false);
+            return Worker.Result.success();
+        }
+        else {
+            Log.i("UHO_Captions", "result = false");
+            cleanup(false);
+            return Worker.Result.failure();
+        }
+    }
+
+    /*@Override
+    public void onStopped() {
+        Log.i("UHO_Captions", "onStopped called");
+        AssetPackManager assetPackManager = AssetPackManagerFactory.getInstance(getApplicationContext());
+        assetPackManager.cancel(Collections.singletonList(assetPackName));
+        super.onStopped();
+    }*/
+};

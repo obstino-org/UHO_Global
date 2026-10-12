@@ -1,0 +1,17 @@
+cd \uho-global-transcribe-android\app\release
+rm app-release.apks
+rm universal.apk
+java -jar bundletool.jar build-apks --bundle=app-release.aab --output=app-release.apks --ks=android_keystore.jks --key-pass=pass:PASSWORDHERE --ks-key-alias=KEYALIAS --ks-pass=pass:PASSWORDHERE --local-testing
+adb uninstall com.obstino.uho_transcribe
+java -jar bundletool.jar install-apks --apks=app-release.apks
+adb shell am start -n com.obstino.uho_transcribe/.MainActivity
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+cd \uho-global-captions-android\app\release
+rm app-release.apks
+rm universal.apk
+java -jar bundletool.jar build-apks --bundle=app-release.aab --output=app-release.apks --ks=android_keystore.jks --key-pass=pass:PASSWORDHERE --ks-key-alias=KEYALIAS --ks-pass=pass:PASSWORDHERE --local-testing
+adb uninstall com.obstino.uho_captions
+java -jar bundletool.jar install-apks --apks=app-release.apks
+adb shell am start -n com.obstino.uho_captions/.MainActivity

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">UHO transcribe</string>
+    <string name="privacy"><a href="https://obstino.org/uho_transcribe/privacy.html">Privacy policy</a></string>
+    <string name="donate">https://www.obstino.org/uho_transcribe/donate.php</string>
+</resources>

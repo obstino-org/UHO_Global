@@ -1,0 +1,10 @@
+plugins {
+  id 'com.android.asset-pack'
+}
+
+assetPack {
+  packName = "assets_es_en"
+  dynamicDelivery {
+    deliveryType = "on-demand"
+  }
+}

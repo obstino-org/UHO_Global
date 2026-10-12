@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:fitsSystemWindows="true"
+    >
+
+    <androidx.appcompat.widget.Toolbar
+        android:visibility="gone"
+        android:id="@+id/main_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="?attr/actionBarTheme"
+        app:titleTextColor="@color/white"
+        app:title="UHO Global: deaf transcribe"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fitsSystemWindows="true"
+        />
+
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/textview_selected1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:paddingLeft="20dp"
+        app:layout_constraintTop_toBottomOf="@id/main_toolbar"
+        android:text="Selected language:"
+        android:textSize="25sp"
+        />
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/textview_selected2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:paddingLeft="20dp"
+        app:layout_constraintTop_toBottomOf="@id/textview_selected1"
+        android:text="test"
+        android:textStyle="bold"
+        android:textSize="15dp"
+        />
+
+    <TextView
+        android:id="@+id/textview_choose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:paddingLeft="20dp"
+        app:layout_constraintTop_toBottomOf="@id/textview_selected2"
+        android:text="Languages:"
+        android:textSize="25sp"
+        />
+
+
+    <TextView
+        android:id="@+id/textview_downloading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/checkbox_experimental"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="Downloading language (0%)"
+        />
+
+    <Button
+        android:id="@+id/button_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/button_donate_main"
+        android:minHeight="60dp"
+        android:layout_marginBottom="10dp"
+        android:text="START" />
+
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:visibility="invisible"
+        android:id="@+id/button_delete_asset"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:cornerRadius="15dp"
+        app:icon="@drawable/trash_icon"
+        app:iconSize="30dp"
+        app:iconGravity="top"
+        android:padding="0dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintLeft_toRightOf="@id/button_start"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/button_start"
+        app:layout_constraintBottom_toBottomOf="@id/button_start"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:visibility="invisible"
+        android:id="@+id/button_cancel_download"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:cornerRadius="15dp"
+        app:icon="@drawable/baseline_close_24"
+        app:iconSize="30dp"
+        app:iconGravity="top"
+        android:padding="0dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintLeft_toRightOf="@id/progress_download"
+        app:layout_constraintBottom_toBottomOf="@id/progress_download"
+        />
+
+    <ProgressBar
+        android:visibility="invisible"
+        android:id="@+id/progress_download"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_downloading"
+        android:layout_marginTop="10dp"
+        android:minHeight="25dp"
+        android:layout_width="240dp"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:progress="0"
+        />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/list_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardElevation="0dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="?attr/colorOutline"
+        app:cardCornerRadius="4dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_choose"
+        app:layout_constraintBottom_toTopOf="@id/checkbox_experimental" >
+        <ListView
+            android:id="@+id/listview_languages"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fadeScrollbars="false"
+            android:scrollbarSize="12dp"
+            android:choiceMode="singleChoice"
+            android:listSelector="@drawable/listselector"
+            />
+    <!--<ListView
+        android:id="@+id/listview_languages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fadeScrollbars="false"
+        android:scrollbarSize="12dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_choose"
+        app:layout_constraintBottom_toTopOf="@id/button_start"
+        android:choiceMode="singleChoice"
+        android:listSelector="@drawable/listselector"
+        />-->
+    </com.google.android.material.card.MaterialCardView>
+
+    <CheckBox
+        android:id="@+id/checkbox_experimental"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show punctuation and speaker change (slower)"
+        app:layout_constraintBottom_toTopOf="@id/button_start"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:checked="false"
+        />
+
+    <TextView
+        android:id="@+id/textview_privacy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:text="@string/privacy"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toEndOf="@+id/button_donate_main"
+        app:layout_constraintTop_toTopOf="@+id/button_donate_main"
+        app:layout_constraintBottom_toBottomOf="@+id/button_donate_main"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintVertical_bias="0.5" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_donate_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Donate"
+        app:icon="@drawable/donation"
+        app:iconGravity="textStart"
+        app:iconSize="30dp"
+        app:iconTint="@null"
+        android:layout_marginStart="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textview_privacy"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

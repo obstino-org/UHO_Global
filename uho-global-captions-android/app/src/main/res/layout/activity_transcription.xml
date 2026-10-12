@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    android:focusable="false"
+    tools:context=".TranscriptionActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="60dp"
+        app:layout_constraintWidth_percent="0.8">
+        <TextView
+            android:clickable="false"
+            android:focusable="false"
+            android:id="@+id/textview_transcription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:textColor="@color/white"
+            android:background="@color/black"
+            android:text="Captions will be shown here." />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+-->
+
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_transcription"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginBottom="0dp"
+    android:clickable="false"
+    android:focusable="false"
+    >
+    <!--app:layout_constraintWidth_percent="0.8"-->
+
+    <!-- padding made to 16dp, previous test was 24dp but was too large -->
+    <TextView
+        android:id="@+id/textview_transcription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/corner"
+        android:clickable="true"
+        android:focusable="true"
+        android:lines="2"
+        android:maxLines="2"
+        android:padding="16dp"
+        android:fallbackLineSpacing="false"
+        android:text="Captions will be shown here."
+        android:textColor="@color/white"
+        android:breakStrategy="high_quality"
+        android:lineBreakWordStyle="phrase"
+        android:lineBreakStyle="strict"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+<!--         app:layout_constraintWidth_max="500dp" -->
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@color/icon"
+    tools:context="com.obstino.uho_captions.MainActivity"
+    android:id="@+id/main_view"
+    >
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="?attr/actionBarTheme"
+        app:titleTextColor="@color/white"
+        app:title="UHO Global - captions for deaf"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fitsSystemWindows="true"
+        />
+
+    <!--
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textinput_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_delete_asset"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        android:hint="SELECTED LANGUAGE"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:endIconMode="custom"
+        app:endIconDrawable="@android:drawable/arrow_down_float"
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/textinput_edittext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="test"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none"
+            android:singleLine="false"
+            android:maxLines="4"
+            android:cursorVisible="false"
+            android:paddingTop="28dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:theme="@style/Widget.MyApp.FixedScrollbarPopup"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+    -->
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textinput_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_delete_asset"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        android:hint="SELECTED LANGUAGE"
+        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+        app:endIconMode="dropdown_menu"
+        >
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/autocomplete_lang"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:singleLine="false"
+            android:clickable="true"
+            android:focusable="false"
+            android:maxLines="4"
+            android:cursorVisible="false"
+            android:paddingTop="28dp"
+            android:paddingBottom="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="test"
+            android:theme="@style/Widget.MyApp.FixedScrollbarPopup"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- ############### DOWNLOAD WIDGETS ################ -->
+
+    <TextView
+        android:id="@+id/textview_downloading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/textinput_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginTop="10dp"
+        android:text="Downloading language (0%)"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        />
+
+    <ProgressBar
+        android:id="@+id/progress_download"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textview_downloading"
+        android:minHeight="25dp"
+        android:layout_marginTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_width="240dp"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:progress="0"
+        android:visibility="gone"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:visibility="gone"
+        android:id="@+id/button_cancel_download"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:cornerRadius="15dp"
+        app:icon="@drawable/baseline_close_24"
+        app:iconSize="30dp"
+        app:iconGravity="top"
+        android:padding="0dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginStart="20dp"
+        app:layout_constraintLeft_toRightOf="@id/progress_download"
+        app:layout_constraintBottom_toBottomOf="@id/progress_download"
+        />
+
+
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        android:visibility="gone"
+        android:id="@+id/button_delete_asset"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:cornerRadius="15dp"
+        app:icon="@drawable/trash_icon"
+        app:iconSize="30dp"
+        app:iconGravity="top"
+        android:padding="0dp"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="15dp"
+        app:layout_constraintStart_toEndOf="@id/textinput_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textinput_layout"
+        app:layout_constraintBottom_toBottomOf="@id/textinput_layout"
+        />
+
+    <!-- ################################################# -->
+
+    <Button
+        android:id="@+id/button_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progress_download"
+        android:layout_marginTop="30dp"
+        android:backgroundTint="#EEEEEE"
+        android:textColor="@color/black"
+        android:textSize="30sp"
+        android:text="Start"
+        android:fitsSystemWindows="true"
+        />
+
+    <Button
+        android:id="@+id/button_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_start"
+        android:layout_marginTop="0dp"
+        android:backgroundTint="#EEEEEE"
+        android:textColor="@color/black"
+        android:textSize="30sp"
+        android:text="Settings"
+        android:fitsSystemWindows="true"
+        />
+
+    <!--
+    <Button
+        android:id="@+id/button_printout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/button_settings"
+        android:layout_marginTop="0dp"
+        android:backgroundTint="#EEEEEE"
+        android:textColor="@color/black"
+        android:textSize="30sp"
+        android:text="Izpis"
+        />
+    -->
+
+    <!-- Earth icons created by Freepik - Flaticon -->
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="fitCenter"
+        android:contentDescription="App logo"
+        android:src="@drawable/ikona"
+        app:layout_constraintBottom_toBottomOf="@id/main_coord_view"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_settings"
+        android:fitsSystemWindows="true"
+        />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/main_coord_view"
+        app:layout_constraintBottom_toTopOf="@id/button_donate"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <TextView
+        android:id="@+id/textview_privacy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/privacy"
+        android:layout_margin="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fitsSystemWindows="true"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_donate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp"
+        app:icon="@drawable/donation"
+        app:iconTint="@null"
+        app:iconGravity="textStart"
+        app:iconSize="30dp"
+        android:text="Donate"
+        android:fitsSystemWindows="true"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

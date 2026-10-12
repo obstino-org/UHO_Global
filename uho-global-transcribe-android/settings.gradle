@@ -1,0 +1,43 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = "UHO_Global_Transcribe"
+include ':app'
+include ':my_ai_pack'   // KEEP!
+//include ':assets_en'    // test
+//include ':assets_es_en'    // test
+
+include ':assets_pt'
+include ':assets_ar'
+include ':assets_ca'
+include ':assets_eo'
+include ':assets_fa'
+include ':assets_hr'
+include ':assets_ko'
+include ':assets_pl'
+include ':assets_sl'
+include ':assets_de'
+include ':assets_fr'
+include ':assets_it'
+include ':assets_mr'
+include ':assets_ru'
+include ':assets_ua'
+include ':assets_by'
+include ':assets_en'
+include ':assets_es_en'
+include ':assets_hi'
+include ':assets_ja_en'
+include ':assets_nl'
+include ':assets_rw'
+include ':assets_zh_en'
