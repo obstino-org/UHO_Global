@@ -9,6 +9,10 @@ It was developed under *Obstino - Assistive Technology Development Association*.
 
 **Learn more and get the app**: <https://www.obstino.org/uho-global>
 
+<a href="https://www.obstino.org/uho-global">
+<img src="global_featured.png" style="max-width: 400px; width: 100%; height: auto;" alt="Watch demo of UHO Global - captions for deaf"> 
+</a>
+
 ---
 
 There are three available UHO Global app variants:
@@ -93,7 +97,7 @@ ONNX runtime used is 1.19.2
 PortAudio version used implements WASAPI loopback, and can be obtained on https://github.com/PortAudio/portaudio/tree/5d01510dc907c1791a4945c9bc4dd6d403c9a410.<br>
 It was compiled using: `make .. -G "Visual Studio 16 2019" -A x64 -DPA_USE_WASAPI=ON -DPA_USE_WDMKS=ON -DPA_USE_WMME=ON -DPA_USE_DS=ON && cmake --build . --config Release`
 
-For file download, curl 8.18.0 is used and compiled using `cmake .. -G "Visual Studio 16 2019" -A x64 -DCURL_USE_LIBPSL=OFF -DCURL_ENABLE_SSL=ON && cmake --build . --config Release`
+For file download, curl 8.18.0 is used and compiled using `cmake .. -G "Visual Studio 16 2019" -A x64 -DCURL_USE_LIBPSL=OFF -DCURL_ENABLE_SSL=ON -DCURL_USE_SCHANNEL=ON && cmake --build . --config Release`
 
 ### Other relevant information
 

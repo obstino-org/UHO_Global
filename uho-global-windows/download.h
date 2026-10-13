@@ -6,17 +6,18 @@
 #include <mutex>
 #include <functional>
 #include <thread>
+#include <vector>
 #include <curl/curl.h>
 using namespace std;
 
 // (libcurl 8.18.0)
-// cmake .. -G "Visual Studio 16 2019" -A x64 -DCURL_USE_LIBPSL=OFF -DCURL_ENABLE_SSL=ON && cmake --build . --config Release
+// cmake .. -G "Visual Studio 16 2019" -A x64 -DCURL_USE_LIBPSL=OFF -DCURL_ENABLE_SSL=ON -DCURL_USE_SCHANNEL=ON && cmake --build . --config Release
 
 class UrlFileInfo {
 public:
 	wstring url;
 	wstring path;
-	UrlFileInfo(wstring url, wstring path) : url(url), path(path) { }
+	UrlFileInfo(wstring url, wstring path) : url(url), path(path) {}
 	UrlFileInfo() {}
 };
 
@@ -32,7 +33,7 @@ public:
 		int prevnow;
 		unsigned long long lastTransferTime;
 		DownloadInfo(FileDownloader& md) : prevnow(0), lastTransferTime(getTime()), md(md), dlnow(0), dltotal(0), finished(false) {}
-		
+
 		void reset() {
 			prevnow = 0;
 			lastTransferTime = getTime();
@@ -51,7 +52,7 @@ public:
 
 	wstring url;
 	wstring path;
-	
+
 	atomic<bool> cancelTransfer = false;
 
 	mutex callbackLock;
@@ -71,20 +72,20 @@ public:
 		std::atexit(curl_global_cleanup);
 	}
 
-	FileDownloader(vector<UrlFileInfo> urlFileInfoVect): urlFileInfoVect(urlFileInfoVect) //:
+	FileDownloader(vector<UrlFileInfo> urlFileInfoVect) : urlFileInfoVect(urlFileInfoVect) //:
 		//urlModel(urlModel), pathModel(pathModel), urlVocab(urlVocab), pathVocab(pathVocab), dlInfo1(DownloadInfo(*this)), dlInfo2(DownloadInfo(*this))
 	{
 		std::call_once(initFlag, initOnce);
 	}
 
 	~FileDownloader() {
-		wprintf(L"FileDownloader deconstructor\n");
+		wprintf(L"FileDownloader deconstructor\ncalling cancelDownload()");
 		cancelDownload();
 
-		for(auto&t: threads)
-		if (t.joinable())
-			t.join();
-		
+		for (auto& t : threads)
+			if (t.joinable())
+				t.join();
+
 		wprintf(L"FileDownloader join()-ed all threads\n");
 	}
 
@@ -100,11 +101,11 @@ public:
 		this->onFinished = onFinished;
 
 		cancelTransfer = false;
-		
+
 		callbackLock.lock();
-		for(int i = 0; i < urlFileInfoVect.size(); i++)
+		for (int i = 0; i < urlFileInfoVect.size(); i++)
 			dlInfoVect.push_back(DownloadInfo(*this));
-		for(auto& dlInfo: dlInfoVect)
+		for (auto& dlInfo : dlInfoVect)
 			dlInfo.reset();
 		callbackLock.unlock();
 
@@ -125,31 +126,35 @@ public:
 	{
 		DownloadInfo* dlInfo = (DownloadInfo*)clientp;
 		vector<DownloadInfo>& refDlInfoVect = dlInfo->md.dlInfoVect;
-		
+
 		dlInfo->md.callbackLock.lock();
 
 		if (dlnow != dlInfo->prevnow)
 			dlInfo->lastTransferTime = DownloadInfo::getTime();
-		
+
 		dlInfo->dltotal = dltotal;
 		dlInfo->dlnow = dlnow;
 		dlInfo->prevnow = dlnow;
-		
+
 		// if too much time has elapsed since last new data, cancel transfer
-		if (DownloadInfo::getTime() - dlInfo->lastTransferTime > dlInfo->md.dlTimeoutMs)
+		if (DownloadInfo::getTime() - dlInfo->lastTransferTime > dlInfo->md.dlTimeoutMs) {
+			wprintf(L"getTime() = %i and lastTransferTime = %i\n", (int)DownloadInfo::getTime(), (int)dlInfo->lastTransferTime);
 			dlInfo->md.cancelTransfer = true;
+		}
 
 		dlInfo->md.callbackLock.unlock();
-		
-		if (dlInfo->md.cancelTransfer == true)
+
+		if (dlInfo->md.cancelTransfer == true) {
+			wprintf(L"returning 1\n");
 			return 1;
+		}
 
 		if (dlnow == 0)
 			return 0;
 
 		dlInfo->md.callbackLock.lock();
 		float percentage;
-		
+
 		/*if (dlInfo->md.dlInfo1.dltotal == 0 || dlInfo->md.dlInfo2.dltotal == 0)
 			percentage = 0.0f;
 		else
@@ -176,15 +181,16 @@ public:
 
 		//printf("sumDlTotal = %i\n", sumDlTotal);
 
-		if(!std::isnan(percentage) && !std::isinf(percentage))
+		if (!std::isnan(percentage) && !std::isinf(percentage))
 			dlInfo->md.onDataReceived(percentage);
 
 		dlInfo->md.callbackLock.unlock();
-		
+
 		return 0;
 	}
 
 	void onDownloadFinished() {
+		wprintf(L"onDownloadFinished\n");
 		bool areAllFinished = true;
 		bool areAllSuccessful = true;
 		for (auto& dlInfo : dlInfoVect) {
@@ -196,8 +202,10 @@ public:
 
 		if (!areAllFinished) {
 			for (auto& dlInfo : dlInfoVect) {
-				if (dlInfo.finished && dlInfo.dlnow == 0)
+				if (dlInfo.finished && dlInfo.dlnow == 0) {
+					wprintf(L"cancel condition 1");
 					cancelTransfer = true;
+				}
 			}
 		}
 		else {
@@ -205,7 +213,7 @@ public:
 				onFinished(true);
 			}
 			else {
-				for(auto& dlInfo: dlInfoVect)
+				for (auto& dlInfo : dlInfoVect)
 					_wremove(dlInfo.md.path.c_str());
 				//_wremove(dlInfo1.md.pathModel.c_str());
 				//_wremove(dlInfo2.md.pathVocab.c_str());
@@ -240,14 +248,16 @@ public:
 		FILE* f;
 		CURLcode result;
 		string surl(urlFileInfo.url.begin(), urlFileInfo.url.end());
-		//printf("URL is %s\n", surl.c_str());
+		wprintf(L"URL is %S\n", surl.c_str());
 
 		curl = curl_easy_init();
 		curl_easy_setopt(curl, CURLOPT_URL, surl.c_str());
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, (void*)&dlInfo);
 		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferinfo_callback);
-
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);	// critical when hosted on github
+		curl_easy_setopt(curl, CURLOPT_USERAGENT, "UhoGlobalDownloader");	// critical when hosted on github
+		
 		wstring destPath = urlFileInfo.path;
 		_wfopen_s(&f, destPath.c_str(), L"wb");
 		if (f) {
@@ -257,10 +267,9 @@ public:
 
 			if (result == CURLE_OK) {
 				success = true;
-				//wprintf(L"result = OK\n");
 			}
 			else {
-				//wprintf(L"result = Not OK: %i\n", result);
+				wprintf(L"result = Not OK: %i\n", result);
 				_wremove(destPath.c_str());
 			}
 			curl_easy_cleanup(curl);
@@ -268,7 +277,7 @@ public:
 
 		callbackLock.lock();
 
-		if(!success)
+		if (!success)
 			dlInfo.dlnow = 0;
 		dlInfo.finished = true;
 		onDownloadFinished();

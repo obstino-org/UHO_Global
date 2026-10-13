@@ -1,6 +1,8 @@
-﻿// UHO Global v3.0 for Windows
+﻿// UHO Global v3.0.0 for Windows
 // Copyright (c) obstino-org. All rights reserved.
 // Licensed under the MIT License.
+
+#define UHO_GLOBAL_VERSION 300
 
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _CRT_SECURE_NO_WARNINGS
@@ -413,7 +415,9 @@ bool isLangInstalled(LanguageInfo& lang) {
 	if (lang.urlFileMap.contains(L"asr_model") &&
 		lang.urlFileMap.contains(L"asr_vocab") &&
 		std::filesystem::exists(lang.urlFileMap[L"asr_model"].path) &&
-		std::filesystem::exists(lang.urlFileMap[L"asr_vocab"].path))
+		std::filesystem::exists(lang.urlFileMap[L"asr_vocab"].path) &&
+		std::filesystem::file_size(lang.urlFileMap[L"asr_model"].path) > 0 &&
+		std::filesystem::file_size(lang.urlFileMap[L"asr_vocab"].path) > 0)
 	{
 		asrOK = true;
 	}
@@ -427,7 +431,9 @@ bool isLangInstalled(LanguageInfo& lang) {
 		pncOK = true;
 	}
 	else if (std::filesystem::exists(lang.urlFileMap[L"pnc_model"].path) &&
-			std::filesystem::exists(lang.urlFileMap[L"pnc_vocab"].path)) {
+			std::filesystem::exists(lang.urlFileMap[L"pnc_vocab"].path) &&
+			std::filesystem::file_size(lang.urlFileMap[L"pnc_model"].path) > 0 &&
+			std::filesystem::file_size(lang.urlFileMap[L"pnc_vocab"].path) > 0) {
 		pncOK = true;
 	} else {
 		pncOK = false;
@@ -592,7 +598,7 @@ LRESULT CALLBACK hWndDownloadProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 
 		bool success = (bool)wParam;
-		//wprintf(L"Received finished message: %i\n", success);
+		wprintf(L"Received finished message: %i\n", success);
 
 		if (success) {
 			MessageBox(
@@ -676,7 +682,6 @@ bool processLanguageSelection(HWND hWnd)
 }
 
 void mainWndLooper(HWND hWnd) {
-
 	while (true) {
 		// get element from queue if there's any
 		mainQueueLock.lock();
@@ -707,6 +712,7 @@ void mainWndLooper(HWND hWnd) {
 				else {
 					EnableWindow(GetDlgItem(hWnd, IDC_COMBO_LANGUAGE), TRUE);
 					EnableWindow(GetDlgItem(hWnd, IDC_BUTTON_DELETE), TRUE);
+					EnableWindow(GetDlgItem(hWnd, IDC_CHECKBOX_SPEAKERCHANGE), TRUE);
 				}
 			}
 
@@ -838,7 +844,7 @@ LRESULT CALLBACK mainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		for (auto& lang: langInfo)
 			ComboBox_AddString(wndComboLanguage, lang.comboText.c_str());
-		ComboBox_SetCurSel(wndComboLanguage, 0);
+		ComboBox_SetCurSel(wndComboLanguage, 7);	// currently this selects English language
 
 		// Create recycle bin button to delete language files
 		wndDeleteLanguage = CreateWindowEx(
@@ -1605,6 +1611,22 @@ void printoutThread()
 	return;
 }
 
+bool isNumber(string s) {
+	bool ret = true;
+
+	if (!s.length())
+		return false;
+
+	for (int i = 0; i < s.length(); i++) {
+		if (!std::isdigit(s[i])) {
+			ret = false;
+			break;
+		}
+	}
+
+	return ret;
+}
+
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR pStr, int nCmd)
 {
 	_setmode(_fileno(stdout), _O_U16TEXT);	// needed for std::towlower etc.
@@ -1657,8 +1679,50 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR pStr, int nCmd)
 		MAIN_WINDOW_HEIGHT,
 		NULL, NULL, hInst, NULL);
 
-	MSG msg;
+	FileDownloader versionTxtDownloader = FileDownloader(
+		{UrlFileInfo(L"https://www.obstino.org/uho_global_windows/version.txt", L"version.txt")}
+	);
 
+	versionTxtDownloader.download(
+		[](float percentage) {},
+		[](bool success) {
+			if (success) {
+				ifstream f("version.txt", std::ios::in | std::ios::binary | std::ios::ate);
+				if (!f.is_open())
+					return;
+				int len = f.tellg();
+				if (len == 0) {
+					f.close();
+					return;
+				}
+				
+				f.seekg(0, std::ios::beg);
+
+				string content;
+				content.resize(len);
+				f.read(&content[0], len);
+
+				f.close();
+
+				// now compare versions (content is at least 1 bytes as we checked above)
+				if (isNumber(content)) {
+					int num = std::atoi(content.c_str());
+					if (num != UHO_GLOBAL_VERSION) {
+						int ret = MessageBox(0, L"There is a new version UHO Global for Windows available on website www.obstino.org/uho-global\nOpen website?", L"Update available", MB_ICONINFORMATION | MB_YESNO);
+						if (ret == IDYES) {
+							ShellExecute(0, L"open", L"www.obstino.org/uho-global", L"", L"", SW_SHOWNORMAL);
+						}
+					}
+				}
+				else {
+					// file read was not a number
+					return;
+				}
+			}
+		}
+	);
+
+	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -1685,8 +1749,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR pStr, int nCmd)
 void test();
 void test2();
 
-/*
-int main() {
+/*int main() {
 	//test(); return 0;
 	//test2(); return 0;
 	return _WinMain(GetModuleHandle(NULL), 0, GetCommandLineA(), SW_SHOW);
